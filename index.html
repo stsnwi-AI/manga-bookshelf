@@ -1,0 +1,159 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#202449"><meta name="description" content="端末内の漫画画像を見開き・単ページで読める漫画本棚ビューア"><link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png"><link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png"><link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png"><link rel="manifest" href="./manifest.webmanifest"><title>漫画本棚ビューア Ver.1.0 | MANGA POP LIBRARY</title><style>
+:root{font-family:system-ui,'Meiryo',sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#11151d;color:#f1f5f9}header{padding:12px 16px;background:#202938;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}h1{font-size:19px;margin:0}button,select{font:inherit;border:1px solid #59677b;border-radius:9px;padding:10px 12px;background:#334155;color:white;cursor:pointer}button.primary{background:#1764c2;border-color:#3986ed}button:disabled{opacity:.45}main{padding:14px;max-width:1250px;margin:auto}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.note{color:#bac5d3;font-size:13px;line-height:1.6}.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;margin-top:16px}.book{background:#253043;border:1px solid #42526a;border-radius:12px;overflow:hidden;text-align:left;padding:0;display:block;width:100%}.cover{height:170px;background:#131923;display:flex;align-items:center;justify-content:center;overflow:hidden}.cover img{width:100%;height:100%;object-fit:contain}.book .meta{padding:10px;overflow-wrap:anywhere}.book small{color:#cbd5e1}.reader{display:none;position:fixed;inset:0;background:#090b0f;z-index:5;flex-direction:column}.reader.active{display:flex}.reader header{flex-shrink:0;padding:8px}.reader header strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:35vw}.stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:auto;touch-action:pan-y;position:relative}.pages{display:flex;align-items:center;justify-content:center;width:100%;height:100%;gap:2px}.pages img{max-height:100%;max-width:100%;object-fit:contain;min-width:0;user-select:none;-webkit-user-drag:none}.pages.double img{max-width:49.8%}.pages.zoom img{max-height:100%;max-width:100%;width:auto;height:auto}.navArea{position:absolute;top:0;bottom:0;width:clamp(40px,9%,100px);z-index:2;opacity:0;border:0;border-radius:0;background:linear-gradient(90deg,rgba(0,0,0,.55),transparent);display:flex;align-items:center;justify-content:center;transition:opacity .15s ease;cursor:pointer}.navArea.left{left:0}.navArea.right{right:0;background:linear-gradient(270deg,rgba(0,0,0,.55),transparent)}.navArea::after{font-size:clamp(28px,4vw,50px);font-weight:700;text-shadow:0 2px 5px #000;line-height:1}.navArea.left::after{content:'❮'}.navArea.right::after{content:'❯'}.navArea:hover,.navArea:focus-visible{opacity:1}.navArea:disabled{pointer-events:none}.pages img{cursor:zoom-in}.pages.zoom img{cursor:grab}.pages.zoom img:active{cursor:grabbing}.pages.zoom{margin:auto}.stage:has(.pages.zoom){display:block}.stage:has(.pages.zoom) .pages{justify-content:center} .zoomControls{display:flex;align-items:center;gap:5px}.zoomControls input{width:110px;accent-color:#60a5fa}.zoomControls output{font-size:12px;min-width:43px;text-align:right} @media(hover:none){.navArea{opacity:.35;width:44px}.navArea::after{font-size:26px}}.footer{padding:8px 12px;background:#202938;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}.footer input{width:min(210px,35vw)}#msg{min-height:20px}body.reading{overflow:hidden}@media(max-width:600px){.reader header strong{max-width:30vw}.reader header button,.footer button{padding:7px}.footer{gap:5px}}
+
+/* Ver.1.0 — classic manga reading room */
+:root{font-family:"Yu Gothic","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;color-scheme:dark;--gold:#d5b27b;--cream:#f6e8cc;--ink:#1c1716}
+body{background:radial-gradient(ellipse at 50% -20%,#554036 0%,transparent 55%),repeating-linear-gradient(90deg,transparent 0 90px,rgba(0,0,0,.035) 91px 94px),linear-gradient(135deg,#211b1a,#342923 45%,#171719);color:var(--cream);min-height:100vh}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.16;background-image:repeating-linear-gradient(0deg,transparent 0 3px,#e1bd8c10 4px 5px);z-index:-1}
+header{background:linear-gradient(180deg,#241c1a,#382a25);border-bottom:1px solid #816343;box-shadow:0 7px 22px #0006;padding:15px clamp(14px,3vw,40px)}
+h1{font-family:Georgia,"Yu Mincho","Hiragino Mincho ProN",serif;font-weight:700;letter-spacing:.07em;color:#f8ebd4;display:flex;align-items:center;gap:10px}
+.brand-mark{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;background:#a92f32;color:#fff4dc;box-shadow:inset 0 0 0 2px #c96154,0 3px 9px #0006;font-size:23px}
+.version{font-family:system-ui;font-size:11px;color:var(--gold);border:1px solid #84684b;border-radius:20px;padding:3px 8px}
+button,select{border:1px solid #7d634a;background:linear-gradient(#47382f,#342923);color:#f8e8cd;border-radius:8px;box-shadow:inset 0 1px #ffffff14;transition:background .15s,border-color .15s,transform .15s}
+button:hover:not(:disabled),select:hover{background:#634735;border-color:#c7a474}
+button:active:not(:disabled){transform:translateY(1px)}
+button.primary{background:linear-gradient(145deg,#b4443b,#7e2828);border-color:#d36d56;color:white;font-weight:700}
+button.primary:hover{background:#c04d43}
+main{max-width:1350px;padding:22px clamp(14px,3vw,38px) 50px}
+.welcome{padding:30px clamp(18px,4vw,50px);margin:0 0 26px;border:1px solid #8b6d4b;border-radius:15px;background:radial-gradient(circle at 88% 30%,#a27d3c40,transparent 45%),linear-gradient(115deg,#36261e,#563b2b 65%,#30211b);box-shadow:0 14px 28px #0006,inset 0 1px #f6dba82a;position:relative;overflow:hidden}
+.welcome::after{content:"読書の時間";position:absolute;right:4%;top:4%;font-family:"Yu Mincho",serif;font-size:clamp(26px,5vw,75px);writing-mode:vertical-rl;letter-spacing:.2em;color:#f0d2a31a;pointer-events:none}
+.welcome-eyebrow{color:#e0b985;letter-spacing:.22em;font-size:11px;font-weight:700}
+.welcome h2{font-family:Georgia,"Yu Mincho",serif;font-size:clamp(23px,3.5vw,39px);margin:12px 0 8px;letter-spacing:.045em;color:#fff0d5}
+.welcome p{margin:0;color:#d7bd9c;font-size:14px}
+.shelf-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #a2815b;margin-bottom:10px;padding-bottom:12px;font-weight:700;letter-spacing:.1em;color:#f3d5a6}
+.shelf-heading small{font-size:12px;color:#bca58e;font-weight:400;letter-spacing:0}
+.note{color:#c7b8a6}
+.shelf{gap:22px 16px;margin:20px 0 28px;padding:24px 20px 34px;background:repeating-linear-gradient(0deg,transparent 0 238px,#120d0bb8 239px 243px,#997049 244px 250px,#302019 251px 259px),linear-gradient(90deg,#241810,#3b2a1e 50%,#261a13);border:12px solid #3b261b;border-radius:10px;box-shadow:inset 0 0 30px #0009,0 15px 25px #0006;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.book{background:linear-gradient(90deg,#1d1513 0 5px,#48342b 7px,#352923 100%);border:1px solid #967653;border-radius:4px 9px 9px 4px;box-shadow:5px 8px 8px #0009,-2px 0 #160e0a;text-align:left;transform-origin:bottom center}
+.book:hover{transform:translateY(-7px) rotate(-1deg);box-shadow:6px 14px 17px #000b}
+.cover{height:194px;background:#171312;border-bottom:2px solid #7e6249}
+.cover img{object-fit:cover}
+.book .meta{padding:11px 10px 12px;min-height:68px;font-size:13px;color:#f3ddbd}
+.book small{color:#c9a881}
+.reader{background:radial-gradient(ellipse at center,#504039 0%,#221d1b 64%,#100f10 100%)}
+.reader header{background:linear-gradient(#302521,#211b19);border-bottom:1px solid #6b5340;z-index:4}
+.reader header strong{color:#f3d8ac;font-family:"Yu Mincho",serif;letter-spacing:.05em}
+.reader .stage{background:radial-gradient(ellipse at center,#63534a 0%,#302823 54%,#151314 100%);overflow:auto}
+.reader-ambient{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#0007,transparent 15%,transparent 85%,#0007);z-index:0}
+.book-frame{display:contents}
+.pages{position:relative;z-index:1;gap:0!important;filter:drop-shadow(0 13px 19px #000b)}
+.pages.double::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:8px;transform:translateX(-50%);background:linear-gradient(90deg,#0007,#fff3 48%,#0008);pointer-events:none;opacity:.45}
+.pages img{background:#f9f5ec;box-shadow:0 0 0 1px #d6c9b7}
+.navArea{z-index:3;color:#fbe5b9;background:linear-gradient(90deg,#20150de0,transparent);border:none}
+.navArea.right{background:linear-gradient(270deg,#20150de0,transparent)}
+.navArea:hover{opacity:1}
+.footer{background:linear-gradient(#2f2420,#1d1817);border-top:1px solid #806347;padding:12px}
+.footer input,.zoomControls input{accent-color:#d9a963}
+#pageLabel{font-family:Georgia,serif;color:#e8c998;font-weight:700;min-width:70px;text-align:center}
+@media(max-width:600px){.welcome{padding:22px 18px}.shelf{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:16px 10px 24px;border-width:7px}.cover{height:175px}.reader header{gap:6px}.reader header strong{max-width:38vw}}
+
+/* Ver.1.0 — COMIC POP × BOOKSHELF: playful but readable */
+:root{--gold:#ffdc65;--cream:#fffaf0;--ink:#11162c;font-family:"Yu Gothic","Meiryo",system-ui,sans-serif}
+body{background:radial-gradient(circle at 14% 10%,#e75c9640 0 12%,transparent 27%),radial-gradient(circle at 86% 32%,#2bcbdb30 0 11%,transparent 30%),radial-gradient(circle at 44% 82%,#ffd35724 0 12%,transparent 32%),linear-gradient(130deg,#161b40,#202a54 45%,#311b47 100%);color:#f6f8ff}
+body::before{background-image:radial-gradient(#fff6 1.4px,transparent 1.6px);background-size:21px 21px;opacity:.18}
+header{background:linear-gradient(100deg,#111b43,#38215a 60%,#622b5d);border-bottom:3px solid #ffda5e;box-shadow:0 6px 22px #0006}
+h1{font-family:"Yu Gothic",system-ui,sans-serif;font-weight:900;color:white;letter-spacing:.02em;text-shadow:2px 3px #11183a}
+.brand-mark{background:linear-gradient(135deg,#ff5076,#ff944b);box-shadow:3px 3px 0 #ffd35b,0 5px 15px #0005;border:2px solid white;transform:rotate(-7deg)}
+.version{color:#fff5b5;border-color:#ffcb69;background:#302a5e}
+button,select{background:#293663;border:1px solid #6679bd;color:#fff;border-radius:10px;box-shadow:inset 0 1px #ffffff24}
+button:hover:not(:disabled),select:hover{background:#3b4d88;border-color:#79e8ff}
+button.primary{background:linear-gradient(135deg,#ff5977,#e73f80);border-color:#ffb0c5;color:white;box-shadow:3px 3px 0 #772d73}
+button.primary:hover{background:#ff7390}
+main{max-width:1350px}
+.welcome{border:3px solid #ffde73;border-radius:20px;background:radial-gradient(circle at 84% 30%,#f7cc4b 0 8%,transparent 9%),radial-gradient(circle at 91% 69%,#46d7df 0 4%,transparent 5%),linear-gradient(118deg,#5135a6,#9c3e9c 52%,#f06985);box-shadow:7px 9px 0 #111632,0 15px 30px #0005}
+.welcome::before{content:"★  ★  ✦";position:absolute;right:12%;top:15%;font-size:clamp(25px,4vw,54px);letter-spacing:25px;color:#ffe573a8;transform:rotate(-12deg);pointer-events:none}
+.welcome::after{content:"ドキドキ！";right:2%;top:15%;font-family:"Yu Gothic",sans-serif;font-weight:900;color:#fff7;letter-spacing:.08em;font-size:clamp(19px,3vw,44px);transform:rotate(8deg)}
+.welcome-eyebrow{color:#fff0a2;font-weight:900;letter-spacing:.2em}
+.welcome h2{font-family:"Yu Gothic",sans-serif;font-weight:900;color:white;text-shadow:3px 4px 0 #6e2e8c;position:relative;z-index:1}
+.welcome p{color:#fff5e9;position:relative;z-index:1}
+.shelf-heading{color:#ffeb92;border-bottom:3px dashed #ffdb70}
+.shelf-heading small{color:#d3e6ff}
+.note{color:#d3dff6}
+.shelf{background:repeating-linear-gradient(0deg,transparent 0 238px,#080d2bd9 239px 243px,#f6b54a 244px 249px,#593976 250px 259px),linear-gradient(110deg,#252c60,#40255d 55%,#24365e);border:9px solid #5e4b94;border-top-color:#7d6cbd;border-radius:15px;box-shadow:inset 0 0 25px #07091e9c,0 12px 0 #11162e,0 20px 35px #0008}
+.book{background:linear-gradient(90deg,#171b3f 0 5px,#41376e 6px,#2e335d 100%);border:2px solid #a18be4;border-radius:5px 12px 12px 5px;box-shadow:5px 8px 0 #0b102d}
+.book:nth-child(3n+1){border-color:#f8b454}
+.book:nth-child(3n+2){border-color:#5ad9e9}
+.book:nth-child(3n){border-color:#f27fa9}
+.book:hover{transform:translateY(-8px) rotate(-1deg);box-shadow:6px 15px 0 #0b102d;border-color:#fff0a0}
+.cover{background:#1c2148;border-bottom:3px solid #ffcf70}
+.book .meta{color:#fff;font-weight:700}
+.book small{color:#bfe8ff}
+.reader{background:#101325}
+.reader header{background:linear-gradient(90deg,#141b39,#302351);border-bottom:2px solid #ffcd69}
+.reader header strong{color:#fff4bc;font-family:"Yu Gothic",sans-serif}
+.reader .stage{background:radial-gradient(ellipse at center,#424665 0%,#252841 52%,#111529 100%)}
+.reader-ambient{background:linear-gradient(90deg,#2a214c90,transparent 18%,transparent 82%,#2a214c90)}
+.pages{filter:drop-shadow(0 15px 20px #000c)}
+.pages img{background:#fff;box-shadow:0 0 0 1px #ddd}
+.navArea{background:linear-gradient(90deg,#5d3b8acc,transparent);color:#fff5b8}
+.navArea.right{background:linear-gradient(270deg,#5d3b8acc,transparent)}
+.footer{background:linear-gradient(90deg,#1d2549,#30234f);border-top:2px solid #ffd56b}
+.footer input,.zoomControls input{accent-color:#ff658e}
+#pageLabel{color:#ffe08b}
+@media(max-width:600px){.welcome::after{opacity:.25}.welcome::before{opacity:.3}}
+
+/* Ver.1.0: keep navigation accessible in single-page and zoomed layouts */
+.stage{position:relative!important;isolation:isolate}
+.stage .navArea{position:fixed;top:50%;bottom:auto;height:min(65vh,620px);transform:translateY(-50%);z-index:30;opacity:.42;pointer-events:auto;border:1px solid #ffffff2e;border-radius:12px;width:clamp(42px,6vw,76px);background:#402b79aa}
+.stage .navArea.left{left:8px;right:auto}
+.stage .navArea.right{right:8px;left:auto}
+.stage .navArea:hover,.stage .navArea:focus-visible{opacity:1;background:#7750a7dd}
+.stage .navArea:disabled{opacity:.12;pointer-events:none}
+.stage .navArea.left::after{content:'❮'}
+.stage .navArea.right::after{content:'❯'}
+.stage:has(.pages.zoom) .navArea{position:fixed}
+@media(hover:none){.stage .navArea{opacity:.68;height:84px;width:42px}}
+
+/* Ver.1.0: edge-wide, reliable click zones, not just arrow glyphs */
+.reader .stage{position:relative!important;isolation:isolate}
+.reader .stage .navArea{
+  position:fixed!important;
+  top:var(--reader-top,64px)!important;
+  bottom:var(--reader-bottom,64px)!important;
+  height:auto!important;
+  transform:none!important;
+  width:clamp(72px,17vw,240px)!important;
+  display:flex!important;align-items:center;justify-content:center;
+  border:0!important;border-radius:0!important;
+  z-index:999!important;opacity:.16;
+  cursor:pointer;touch-action:manipulation;
+  transition:opacity .15s ease,background .15s ease;
+}
+.reader .stage .navArea.left{left:0!important;right:auto!important;background:linear-gradient(90deg,#724ba2aa,transparent)!important}
+.reader .stage .navArea.right{right:0!important;left:auto!important;background:linear-gradient(270deg,#724ba2aa,transparent)!important}
+.reader .stage .navArea:hover,.reader .stage .navArea:focus-visible{opacity:1!important}
+.reader .stage .navArea:disabled{opacity:.04!important;pointer-events:none!important}
+.reader .stage .navArea::after{font-size:clamp(30px,4vw,54px);pointer-events:none}
+@media(hover:none){.reader .stage .navArea{opacity:.28;width:clamp(60px,16vw,120px)!important}}
+</style></head><body><header><h1><span class="brand-mark">漫</span> 漫画本棚 <small class="version">Ver.1.0</small></h1><div class="toolbar"><button class="primary" id="pickRoot">📁 漫画ライブラリを選択</button><button id="pickBook">📖 1冊のフォルダを選択</button></div></header><main><section class="welcome"><div class="welcome-eyebrow">WELCOME TO YOUR COMIC WORLD</div><h2>さあ、漫画の世界へ飛び込もう！</h2><p>ワクワクする物語を、好きなだけ。</p></section><div class="shelf-heading"><span>📖 MY COLLECTION</span><small>本棚から作品を選択</small></div><p class="note">漫画1冊＝1フォルダ。JPEG/PNG/WebPをファイル名順に表示します。画像をクリックすると拡大、ダブルクリックで100％に戻ります。画像をクリックしてからホイールや倍率スライダーで50～400％を1％刻みで調整できます。拡大中は画像をドラッグして移動できます。画面の左右端にマウスを近づけるとページ送り矢印が表示されます。PC・スマホそれぞれに保存したフォルダを選んでください。画像は外部へ送信しません。</p><div id="msg" role="status"></div><div class="shelf" id="shelf"></div><p class="note">※ Androidなどでフォルダ選択が使えない場合は、フォルダ内の画像をまとめて選択してください。端末ごとに本棚は独立しています。ブラウザを再起動した際はフォルダを再選択してください（しおりは保持されます）。</p></main>
+<div class="reader" id="reader"><header><button id="close">← 本棚</button><strong id="bookTitle"></strong><div class="toolbar"><select id="direction" aria-label="読み方向"><option value="rtl">右開き（漫画）</option><option value="ltr">左開き</option></select><select id="layout" aria-label="表示方式"><option value="auto">自動</option><option value="single">1ページ</option><option value="double">見開き</option></select><div class="zoomControls"><button id="zoomOut" title="縮小">−</button><input id="zoomRange" type="range" min="50" max="400" step="1" value="100" aria-label="拡大率"><output id="zoomValue">100%</output><button id="zoomIn" title="拡大">＋</button><button id="zoomReset" title="100％に戻す">100%</button></div></div></header><div class="stage" id="stage"><div class="reader-ambient" aria-hidden="true"></div><button class="navArea left" id="left" title="左側をクリックして次へ" aria-label="左側の領域をクリックして次のページへ"></button><div class="book-frame"><div class="pages" id="pages"></div></div><button class="navArea right" id="right" title="右側をクリックして前へ" aria-label="右側の領域をクリックして前のページへ"></button></div><div class="footer"><button id="next">次へ</button><span id="pageLabel"></span><input type="range" id="seek" min="1" max="1" value="1" aria-label="ページを移動"><button id="prev">前へ</button><button id="bookmark">🔖 しおり</button></div></div>
+<input type="file" id="folderInput" webkitdirectory directory multiple hidden accept="image/*"><input type="file" id="bookInput" webkitdirectory directory multiple hidden accept="image/*"><input type="file" id="multiInput" multiple hidden accept="image/*">
+<script>
+(()=>{'use strict';const $=id=>document.getElementById(id), books=[], urls=[];let active=null,page=0,zoomLevel=100,swipeX=null,dragging=null,suppressClick=false,wheelZoomEnabled=false;const imgs=/\.(jpe?g|png|webp|gif|avif)$/i;const natural=new Intl.Collator('ja',{numeric:true,sensitivity:'base'});const tell=s=>$('msg').textContent=s;const key=name=>'manga-reader-v01:'+name;
+function clean(){urls.forEach(u=>URL.revokeObjectURL(u));urls.length=0}function filesToBooks(files,root){const groups=new Map();for(const f of files){if(!imgs.test(f.name))continue;const path=f.webkitRelativePath||f.name;const bits=path.split('/');let title;if(root){title=bits.length>=3?bits[1]:bits.length===2?bits[0]:'選択した画像'}else{title=bits.length>=2?bits[0]:'選択した画像'}if(!groups.has(title))groups.set(title,[]);groups.get(title).push(f)}let count=0;for(const [title,items] of groups){items.sort((a,b)=>natural.compare(a.name,b.name));addBook(title,items);count++}tell(count?`${count}冊を読み込みました。表紙を押して開いてください。`:'画像が見つかりません。JPEGなどを選択してください。')}
+function addBook(title,files){const id=title+'|'+files.length+'|'+files[0]?.name;const old=books.findIndex(b=>b.id===id);if(old>=0)books.splice(old,1);books.push({id,title,files});renderShelf()}
+function renderShelf(){const shelf=$('shelf');shelf.replaceChildren();for(const b of books){const btn=document.createElement('button');btn.className='book';const cover=document.createElement('div');cover.className='cover';const img=document.createElement('img');const url=URL.createObjectURL(b.files[0]);urls.push(url);img.src=url;img.alt='表紙';cover.append(img);const meta=document.createElement('div');meta.className='meta';const title=document.createElement('strong');title.textContent=b.title;const small=document.createElement('small');small.textContent=`${b.files.length}ページ`;meta.append(title,document.createElement('br'),small);btn.append(cover,meta);btn.onclick=()=>openBook(b);shelf.append(btn)}}
+function syncNavBounds(){
+ const stage=$('stage'),r=stage.getBoundingClientRect();
+ document.documentElement.style.setProperty('--reader-top',Math.max(0,r.top)+'px');
+ document.documentElement.style.setProperty('--reader-bottom',Math.max(0,innerHeight-r.bottom)+'px');
+}
+function openBook(b){active=b;page=Math.max(0,Math.min(b.files.length-1,Number(localStorage.getItem(key(b.id)))||0));$('bookTitle').textContent=b.title;zoomLevel=100;wheelZoomEnabled=false;syncZoom();$('reader').classList.add('active');document.body.classList.add('reading');renderPages();syncNavBounds()}
+function isDouble(){return $('layout').value==='double'||$('layout').value==='auto'&&innerWidth>=800}function renderPages(){if(!active)return;const count=active.files.length;page=Math.max(0,Math.min(count-1,page));const double=isDouble();const indices=double&&page+1<count?[page,page+1]:[page];if($('direction').value==='rtl')indices.reverse();const p=$('pages');p.replaceChildren();p.className='pages'+(double?' double':'')+(zoomLevel!==100?' zoom':'');for(const i of indices){const im=document.createElement('img');const url=URL.createObjectURL(active.files[i]);urls.push(url);im.src=url;im.alt=`${i+1}ページ`;im.title='クリックでホイール拡大を有効化・ダブルクリックで100％';im.draggable=false;im.addEventListener('click',e=>{if(suppressClick){suppressClick=false;return}wheelZoomEnabled=true;setZoom(zoomLevel===100?150:zoomLevel,e.clientX,e.clientY)});im.addEventListener('dblclick',e=>{e.preventDefault();wheelZoomEnabled=false;setZoom(100)});p.append(im)}$('pageLabel').textContent=`${page+1}${indices.length===2?'–'+(page+2):''} / ${count}`;$('seek').max=count;$('seek').value=page+1;localStorage.setItem(key(active.id),String(page));$('prev').disabled=page===0;$('next').disabled=page+indices.length>=count;$('left').disabled=page+indices.length>=count;$('right').disabled=page===0;applyZoom();$('stage').scrollTo(0,0)}function move(delta){if(!active)return;page+=delta*(isDouble()?2:1);renderPages()}
+$('close').onclick=()=>{$('reader').classList.remove('active');document.body.classList.remove('reading');active=null;clean();renderShelf()};$('prev').onclick=()=>move(-1);$('next').onclick=()=>move(1);$('left').onclick=()=>move(1);$('right').onclick=()=>move(-1);$('seek').oninput=e=>{page=Number(e.target.value)-1;renderPages()};$('direction').onchange=renderPages;$('layout').onchange=renderPages;function syncZoom(){$('zoomRange').value=zoomLevel;$('zoomValue').textContent=zoomLevel+'%'+(wheelZoomEnabled?' ●':'')}
+function applyZoom(){const p=$('pages');if(!p)return;const z=zoomLevel/100;const stage=$('stage');p.classList.toggle('zoom',zoomLevel!==100);
+// 見開き全体を1つの面として拡大。個別画像の幅を変更しないので中央の綴じ目が離れない。
+p.style.width=stage.clientWidth+'px';p.style.height=stage.clientHeight+'px';p.style.zoom=String(z);
+for(const im of p.querySelectorAll('img')){im.style.width='';im.style.height='';im.style.objectFit='contain'}
+syncZoom()}
+function setZoom(value,x,y){const stage=$('stage');const old=zoomLevel;zoomLevel=Math.max(50,Math.min(400,Math.round(value)));const rect=stage.getBoundingClientRect();const rx=x===undefined?.5:(x-rect.left)/rect.width;const ry=y===undefined?.5:(y-rect.top)/rect.height;const ax=stage.scrollLeft+rect.width*rx,ay=stage.scrollTop+rect.height*ry;applyZoom();stage.scrollLeft=ax*zoomLevel/old-rect.width*rx;stage.scrollTop=ay*zoomLevel/old-rect.height*ry}
+$('zoomRange').oninput=e=>setZoom(Number(e.target.value));$('zoomIn').onclick=()=>setZoom(zoomLevel+10);$('zoomOut').onclick=()=>setZoom(zoomLevel-10);$('zoomReset').onclick=()=>{wheelZoomEnabled=false;setZoom(100)};
+$('stage').addEventListener('wheel',e=>{if(!wheelZoomEnabled||!e.target.closest('#pages'))return;e.preventDefault();setZoom(zoomLevel+(e.deltaY<0?10:-10),e.clientX,e.clientY)},{passive:false});
+$('pages').addEventListener('pointerdown',e=>{if(zoomLevel<=100||e.pointerType==='touch'||e.button!==0)return;dragging={x:e.clientX,y:e.clientY,left:$('stage').scrollLeft,top:$('stage').scrollTop,moved:false};$('pages').setPointerCapture(e.pointerId)});
+$('pages').addEventListener('pointermove',e=>{if(!dragging)return;const dx=e.clientX-dragging.x,dy=e.clientY-dragging.y;if(Math.abs(dx)+Math.abs(dy)>5)dragging.moved=true;$('stage').scrollLeft=dragging.left-dx;$('stage').scrollTop=dragging.top-dy});
+$('pages').addEventListener('pointerup',e=>{if(dragging?.moved){suppressClick=true;setTimeout(()=>suppressClick=false,200)}dragging=null});
+$('bookmark').onclick=()=>{localStorage.setItem(key(active.id),String(page));$('bookmark').textContent='✓ 保存';setTimeout(()=>$('bookmark').textContent='🔖 しおり',1300)};
+$('stage').addEventListener('touchstart',e=>{swipeX=e.touches[0]?.clientX},{passive:true});$('stage').addEventListener('touchend',e=>{if(swipeX===null)return;const diff=e.changedTouches[0].clientX-swipeX;swipeX=null;if(Math.abs(diff)<65||zoomLevel>100)return;const rtl=$('direction').value==='rtl';move((diff>0)==rtl?1:-1)},{passive:true});document.addEventListener('keydown',e=>{if(!$('reader').classList.contains('active'))return;if(e.key==='Escape')$('close').click();if(e.key==='ArrowLeft')move($('direction').value==='rtl'?1:-1);if(e.key==='ArrowRight')move($('direction').value==='rtl'?-1:1)});window.addEventListener('resize',()=>{if(active){renderPages();syncNavBounds()}});
+$('pickRoot').onclick=()=>{$('folderInput').click()};$('pickBook').onclick=()=>{$('bookInput').click()};$('folderInput').onchange=e=>{filesToBooks([...e.target.files],true);e.target.value=''};$('bookInput').onchange=e=>{filesToBooks([...e.target.files],false);e.target.value=''};window.addEventListener('dragover',e=>e.preventDefault());window.addEventListener('drop',e=>{e.preventDefault();const f=[...e.dataTransfer.files];if(f.length)filesToBooks(f,false)});
+})();
+</script></body></html>
